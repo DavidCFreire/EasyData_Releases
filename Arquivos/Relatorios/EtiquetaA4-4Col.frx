@@ -1,0 +1,410 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ScriptLanguage="CSharp" ReferencedAssemblies="EasyData.dll" ReportInfo.Created="10/11/2017 22:21:42" ReportInfo.Modified="12/15/2022 10:40:43" ReportInfo.CreatorVersion="2022.2.0.0">
+  <ScriptText>
+    using System;
+    using System.IO;
+    using System.Drawing;
+    using System.Text.RegularExpressions;
+    using FastReport;
+    using FastReport.Data;
+    using FastReport.Dialog;
+    using FastReport.Barcode;
+    using FastReport.Table;
+    using FastReport.Utils;
+    using EasyData;
+
+    namespace FastReport
+    {
+    public class ReportScript
+    {
+    private string FormatarCampo(string valor, char format)
+    {
+      if (valor == null) return string.Empty;
+      
+      switch (format)
+      {
+        case 'c':  //CEP
+          if (valor.Length == 8)
+            valor = valor.Substring(0,2) + &quot;.&quot; + valor.Substring(2,3) + &quot;-&quot; + valor.Substring(5,3);          
+          break;
+        
+        case 'f':  //Telefone /celular         
+          if (valor.Length == 10)
+            valor = &quot;(&quot; +valor.Substring(0,2) + &quot;) &quot; + valor.Substring(2,4) + &quot;-&quot; + valor.Substring(6,4);
+          else if (valor.Length == 11)
+            valor = &quot;(&quot; +valor.Substring(0,2) + &quot;) &quot; + valor.Substring(2,5) + &quot;-&quot; + valor.Substring(7,4);     
+          else 
+            valor = valor;
+          break;
+        
+        case 'd': //cpf / cnpj
+          if (valor.Length == 11)
+            valor = valor.Substring(0,3)+&quot;.&quot;+valor.Substring(3,3)+&quot;.&quot;+valor.Substring(6,3)+&quot;-&quot;+valor.Substring(9,2);
+          else if (valor.Length == 14)
+            valor = valor.Substring(0,2)+&quot;.&quot;+valor.Substring(2,3)+&quot;.&quot;+valor.Substring(5,3)+&quot;/&quot;+valor.Substring(8,4)+&quot;-&quot;+valor.Substring(12,2);
+          break;  
+        
+        case 'p':
+          if (valor.Length == 7)
+            valor = valor.Substring(0,3)+&quot;-&quot;+valor.Substring(3,4);
+          break;
+      }                               
+      return valor;
+    }
+    
+    public Image ObterLogo()
+    {
+      byte[] logomarca = Report.GetParameterValue(&quot;Logo&quot;) as byte[];
+      
+      if (logomarca == null) return null;
+      
+      using(var ms = new MemoryStream(logomarca))
+      {
+        var image = Image.FromStream(ms);
+        return image;
+      }
+    }          
+
+    private void Destinatario_BeforePrint(object sender, EventArgs e)
+    {
+    }
+
+    private void Emitente_BeforePrint(object sender, EventArgs e)
+    {
+//      poEmitLogo.Image = ObterLogo();
+    }
+  }
+}     </ScriptText>
+  <Dictionary>
+    <BusinessObjectDataSource Name="PRODUTOS" ReferenceName="PRODUTOS" DataType="null" Enabled="true">
+      <Column Name="PK" DataType="System.Int32"/>
+      <Column Name="DESCRICAO" DataType="System.String"/>
+      <Column Name="VALOR_UNITARIO" DataType="System.Decimal"/>
+      <Column Name="CODIGO_BARRA" DataType="System.String"/>
+      <Column Name="REFERENCIA" DataType="System.String"/>
+      <Column Name="UNIDADE" DataType="System.String"/>
+      <Column Name="EMBALAGEM" DataType="System.String"/>
+      <Column Name="FK_GRUPO" DataType="System.Int32"/>
+      <Column Name="FK_FABRICANTE" DataType="System.Int32"/>
+      <Column Name="FK_FORNECEDOR" DataType="System.Int32"/>
+      <Column Name="FK_SUBGRUPO" DataType="System.Int32"/>
+      <Column Name="OBS" DataType="System.String"/>
+      <Column Name="PRECO_VENDA" DataType="System.Decimal"/>
+      <Column Name="PRECO_A" DataType="System.Decimal"/>
+      <Column Name="PRECO_B" DataType="System.Decimal"/>
+      <Column Name="PRECO_C" DataType="System.Decimal"/>
+      <Column Name="NCM" DataType="System.String"/>
+      <Column Name="PRECO_COMPRA" DataType="System.Decimal"/>
+      <Column Name="ICMS_COMPRA" DataType="System.Decimal"/>
+      <Column Name="ICMS_SUBSTITUTO" DataType="System.Decimal"/>
+      <Column Name="IPI" DataType="System.Decimal"/>
+      <Column Name="ICMS_FRONTEIRA" DataType="System.Decimal"/>
+      <Column Name="FRETE" DataType="System.Decimal"/>
+      <Column Name="DESCARREGO" DataType="System.Decimal"/>
+      <Column Name="CUSTO_FIXO" DataType="System.Decimal"/>
+      <Column Name="IMPOSTO_FEDERAL" DataType="System.Decimal"/>
+      <Column Name="ICMS_VENDA" DataType="System.Decimal"/>
+      <Column Name="COMISSAO" DataType="System.Decimal"/>
+      <Column Name="CARTAO" DataType="System.Decimal"/>
+      <Column Name="FINANCEIRA" DataType="System.Decimal"/>
+      <Column Name="OUTRAS_DESPESAS" DataType="System.Decimal"/>
+      <Column Name="MARGEM_LUCRO" DataType="System.Decimal"/>
+      <Column Name="PESO" DataType="System.Decimal"/>
+      <Column Name="PRATELEIRA" DataType="System.String"/>
+      <Column Name="ESTOQUE_MINIMO" DataType="System.Decimal"/>
+      <Column Name="ESTOQUE" DataType="System.Decimal"/>
+      <Column Name="FK_LINHA" DataType="System.Int32"/>
+      <Column Name="FK_TIPO_PRODUTO" DataType="System.Int32"/>
+      <Column Name="EFISCO" DataType="System.String"/>
+      <Column Name="SIAGEM" DataType="System.String"/>
+      <Column Name="ANVISA" DataType="System.String"/>
+      <Column Name="RPOM" DataType="System.String"/>
+      <Column Name="RPOM_DESCRICAO" DataType="System.String"/>
+      <Column Name="SIMPRO" DataType="System.String"/>
+      <Column Name="SIMPRO_PRECO" DataType="System.Decimal"/>
+      <Column Name="BRASINDICE" DataType="System.Decimal"/>
+      <Column Name="ESPECIFICACOES" DataType="System.String"/>
+      <Column Name="CST" DataType="System.String"/>
+      <Column Name="CFOP" DataType="System.String"/>
+      <Column Name="GRUPO_ICMS" DataType="System.String"/>
+      <Column Name="CST_PIS" DataType="System.String"/>
+      <Column Name="CST_COFINS" DataType="System.String"/>
+      <Column Name="GRUPO_COFINS" DataType="System.String"/>
+      <Column Name="GRUPO_PIS" DataType="System.String"/>
+      <Column Name="ALIQ_ICMS" DataType="System.Decimal"/>
+      <Column Name="ALIQ_IPI" DataType="System.Decimal"/>
+      <Column Name="ALIQ_PIS" DataType="System.Decimal"/>
+      <Column Name="ALIQ_COFINS" DataType="System.Decimal"/>
+      <Column Name="ALIQ_ST" DataType="System.Decimal"/>
+      <Column Name="ALIQ_ST_REDUCAO" DataType="System.Decimal"/>
+      <Column Name="ALIQ_REDUCAO" DataType="System.Decimal"/>
+      <Column Name="UF" DataType="System.String"/>
+      <Column Name="MOD_BC" DataType="System.Int32"/>
+      <Column Name="MOD_BCST" DataType="System.Int32"/>
+      <Column Name="ORIGEM" DataType="System.Int32"/>
+      <Column Name="PMVAST" DataType="System.Decimal"/>
+      <Column Name="CST_IPI" DataType="System.String"/>
+      <Column Name="GRUPO_IPI" DataType="System.String"/>
+      <Column Name="PMVA" DataType="System.Decimal"/>
+      <Column Name="CEST" DataType="System.String"/>
+      <Column Name="DATA_HORA_USUARIO" DataType="System.String"/>
+      <Column Name="ESTOQUE_MAXIMO" DataType="System.Decimal"/>
+      <Column Name="FACE" DataType="System.Decimal"/>
+      <Column Name="NAO_CONTROLAR_LOTE" DataType="System.String"/>
+      <Column Name="DESATIVADO" DataType="System.String"/>
+      <Column Name="COMPOSICAO" DataType="System.String"/>
+      <Column Name="ESTOQUE_FISCAL" DataType="System.Decimal"/>
+      <Column Name="ESTOQUE_CONSIGNADO" DataType="System.Decimal"/>
+      <Column Name="VALOR_PROMOCAO" DataType="System.Decimal"/>
+      <Column Name="DATA_PROMOCAO" DataType="null"/>
+      <Column Name="DATA_PROMOCAO_FIM" DataType="null"/>
+      <Column Name="COR" DataType="System.String"/>
+      <Column Name="PESO_BRUTO" DataType="System.Decimal"/>
+      <Column Name="PESO_LIQUIDO" DataType="System.Decimal"/>
+      <Column Name="MARCA" DataType="System.String"/>
+      <Column Name="IND_ESCALA" DataType="System.String"/>
+      <Column Name="IND_ESCALA_CNPJ" DataType="System.String"/>
+      <Column Name="DATA_CADASTRO" DataType="null"/>
+      <Column Name="NAO_EXIBIR_LOTE" DataType="System.String"/>
+      <Column Name="NAO_ENVIAR_PALM" DataType="System.String"/>
+      <Column Name="AVARIA" DataType="System.String"/>
+      <Column Name="NAO_ESTOQUE_NEGATIVO" DataType="System.String"/>
+      <Column Name="FK_FOTO" DataType="System.Int32"/>
+      <Column Name="EAN_TRIB" DataType="System.String"/>
+      <Column Name="QT_P" DataType="System.Decimal"/>
+      <Column Name="QT_V" DataType="System.Decimal"/>
+      <Column Name="FATOR_CONVERSAO" DataType="System.Int32"/>
+      <Column Name="FK_VIDROS_TIPO_CALCULO" DataType="System.Int32"/>
+      <Column Name="EXCLUSIVO" DataType="System.String"/>
+      <Column Name="SERVICO" DataType="System.String"/>
+      <Column Name="LANCAMENTO" DataType="System.String"/>
+      <Column Name="SKU" DataType="System.String"/>
+      <Column Name="CONDICAO_PRECO_A" DataType="System.String"/>
+      <Column Name="CONDICAO_PRECO_B" DataType="System.String"/>
+      <Column Name="CONDICAO_PRECO_C" DataType="System.String"/>
+      <Column Name="NAO_GERAR_PRODUCAO" DataType="System.String"/>
+      <Column Name="ANVISA_NOME_TECNICO" DataType="System.String"/>
+      <Column Name="FK_PRODUTOS_ANVISA_CLASS_RISCO" DataType="System.Int32"/>
+      <Column Name="ANVISA_REGISTRO_VALIDADE" DataType="System.DateTime"/>
+      <Column Name="DATA_ULT_NF_ENTRADA" DataType="System.DateTime"/>
+      <Column Name="LOCAL_DEPOSITO" DataType="System.String"/>
+      <Column Name="FK_NCM" DataType="System.Int32"/>
+      <Column Name="DESCRICAO_TECNICA" DataType="System.String"/>
+      <Column Name="VIDRO_COMUM" DataType="System.String"/>
+      <Column Name="AREA" DataType="System.Decimal"/>
+      <Column Name="NAO_CALCULAR_MARKUP" DataType="System.String"/>
+      <Column Name="FK_TINTA" DataType="System.Int32"/>
+      <Column Name="NAO_EXIBIR_VENDA" DataType="System.String"/>
+      <Column Name="DESCONTO_MAXIMO" DataType="System.Decimal"/>
+      <Column Name="CANCELAR_COMISSAO_CONTAS_RECEBER" DataType="System.String"/>
+      <Column Name="SOLICITAR_PRECO_NFCE" DataType="System.String"/>
+      <Column Name="FAVORITO" DataType="System.String"/>
+    </BusinessObjectDataSource>
+    <BusinessObjectDataSource Name="EMPRESA" ReferenceName="EMPRESA" DataType="null" Enabled="true">
+      <Column Name="PK" DataType="System.Int32"/>
+      <Column Name="TERMINAL" DataType="System.String"/>
+      <Column Name="RAZAO_SOCIAL" DataType="System.String"/>
+      <Column Name="FANTASIA" DataType="System.String"/>
+      <Column Name="ENDERECO" DataType="System.String"/>
+      <Column Name="ENDERECO_NUM" DataType="System.String"/>
+      <Column Name="BAIRRO" DataType="System.String"/>
+      <Column Name="FK_CIDADE" DataType="System.String"/>
+      <Column Name="CIDADE" DataType="System.String"/>
+      <Column Name="UF" DataType="System.String"/>
+      <Column Name="CUF" DataType="System.String"/>
+      <Column Name="CNPJ" DataType="System.String"/>
+      <Column Name="IE" DataType="System.String"/>
+      <Column Name="IM" DataType="System.String"/>
+      <Column Name="CSC" DataType="System.String"/>
+      <Column Name="CERTIFICADO" DataType="System.String"/>
+      <Column Name="IDCSC" DataType="System.String"/>
+      <Column Name="FONE" DataType="System.String"/>
+      <Column Name="EMAIL" DataType="System.String"/>
+      <Column Name="CEP" DataType="System.String"/>
+      <Column Name="CRT" DataType="System.String"/>
+      <Column Name="TRIBUTACAO" DataType="System.Int32"/>
+      <Column Name="ESTOQUE_NEGATIVO" DataType="System.String"/>
+      <Column Name="ESTOQUE_PREVENDA" DataType="System.String"/>
+      <Column Name="FINANCEIRO_PREVENDA" DataType="System.String"/>
+      <Column Name="CONDICAO_PAGAMENTO" DataType="System.String"/>
+      <Column Name="PREVENDA_ALTERAR_DATA" DataType="System.String"/>
+      <Column Name="PREVENDA_ALTERAR_PRECO" DataType="System.String"/>
+      <Column Name="PREVENDA_ITEM_REPETIDO" DataType="System.String"/>
+      <Column Name="LEITURA_CODIGO_BARRA" DataType="System.String"/>
+      <Column Name="PREVENDA_LUCRATIVIDADE" DataType="System.String"/>
+      <Column Name="WEBSERVICES_URL" DataType="System.String"/>
+      <Column Name="FORMA_PAGAMENTO_CLIENTE" DataType="System.String"/>
+      <Column Name="TRIBUTACAO_PADRAO_VENDA" DataType="System.Int32"/>
+      <Column Name="ORCAMENTO_ALTERAR_DATA" DataType="System.String"/>
+      <Column Name="ORCAMENTO_ALTERAR_PRECO" DataType="System.String"/>
+      <Column Name="ORCAMENTO_ITEM_REPETIDO" DataType="System.String"/>
+      <Column Name="ORCAMENTO_VALIDAR_ESTOQUE" DataType="System.String"/>
+      <Column Name="CLIENTE_PADRAO_ORCAMENTO" DataType="System.Int32"/>
+      <Column Name="CLIENTE_PADRAO_VENDA" DataType="System.Int32"/>
+      <Column Name="ATUALIZAR_PRECO_COMPRA" DataType="System.String"/>
+      <Column Name="BLOQUEAR_SESSAO" DataType="System.String"/>
+      <Column Name="ESTOQUE_CONTABIL" DataType="System.String"/>
+      <Column Name="CONTADOR_CNPJ_CPF" DataType="System.String"/>
+      <Column Name="CONSIGNACAO_ALTERAR_PRECO" DataType="System.String"/>
+      <Column Name="FATURAMENTO_ALTERAR_PRECO" DataType="System.String"/>
+      <Column Name="CONSIGNACAO_ALTERAR_DATA" DataType="System.String"/>
+      <Column Name="FATURAMENTO_PAGAMENTO_AVULSO" DataType="System.String"/>
+      <Column Name="NAO_ALTERAR_VENDEDOR_PREVENDA" DataType="System.String"/>
+      <Column Name="NAO_ALTERAR_VENDEDOR_ORCAMENTO" DataType="System.String"/>
+      <Column Name="USAR_VENDEDOR_CLIENTE_PREVENDA" DataType="System.String"/>
+      <Column Name="USAR_VENDEDOR_CLIENTE_ORCAMENTO" DataType="System.String"/>
+      <Column Name="VALIDAR_CASA_DECIMAL" DataType="System.String"/>
+      <Column Name="USAR_CAIXA_PREVENDA" DataType="System.String"/>
+      <Column Name="NAO_VENDER_AVULSO_CAIXA" DataType="System.String"/>
+      <Column Name="PRECO_PADRAO" DataType="System.String"/>
+      <Column Name="PRAZO_MEDIO" DataType="System.Int32"/>
+      <Column Name="EDITAR_DESFAZER_PAGAMENTO" DataType="System.String"/>
+      <Column Name="DATA_HORA_USUARIO" DataType="System.String"/>
+      <Column Name="MULTA" DataType="System.Decimal"/>
+      <Column Name="JUROS" DataType="System.Decimal"/>
+      <Column Name="USAR_PRECO_FINAL" DataType="System.String"/>
+      <Column Name="FATURAMENTO_ANVISA" DataType="System.String"/>
+      <Column Name="FINALIZAR_SEM_FINANCEIRO" DataType="System.String"/>
+      <Column Name="USAR_ABERTURA_CAIXA" DataType="System.String"/>
+      <Column Name="CANCELAR_PEDIDO" DataType="System.String"/>
+      <Column Name="FORNECEDOR_XML_FILTRO" DataType="System.String"/>
+      <Column Name="TRIBUTACAO_MANUAL" DataType="System.String"/>
+      <Column Name="ENVIAR_EMAIL_AUTOMATICO" DataType="System.String"/>
+      <Column Name="MODELO_PEDIDO" DataType="System.String"/>
+      <Column Name="MODELO_FORM_ORCAMENTO" DataType="System.String"/>
+      <Column Name="ATUALIZAR_VENCIMENTO" DataType="System.String"/>
+      <Column Name="COMBO_CLIENTE" DataType="System.String"/>
+      <Column Name="COMBO_FORNECEDOR" DataType="System.String"/>
+      <Column Name="COMBO_TRANSPORTADOR" DataType="System.String"/>
+      <Column Name="MODELO_ORCAMENTO" DataType="System.String"/>
+      <Column Name="MODELO_ORDEM_FORNECIMENTO" DataType="System.String"/>
+      <Column Name="BLOQUEIO_AUTOMATICO" DataType="System.String"/>
+      <Column Name="DIAS_BLOQUEIO" DataType="System.Int32"/>
+      <Column Name="MODELO_FORM_PRODUTO" DataType="System.String"/>
+      <Column Name="MODELO_FORM_PREVENDA" DataType="System.String"/>
+      <Column Name="DIAS_UTEIS" DataType="System.String"/>
+      <Column Name="REGIME_ESPECIAL_TRIBUTACAO" DataType="System.Int32"/>
+      <Column Name="OPTANTE_SIMPLES_NACIAL" DataType="System.String"/>
+      <Column Name="INCENTIVADOR_CULTURAL" DataType="System.String"/>
+      <Column Name="EXIGIBILIDADE_ISS" DataType="System.Int32"/>
+      <Column Name="MODELO_DANFE" DataType="System.String"/>
+      <Column Name="COMPORTAMENTO_PESQUISA" DataType="System.String"/>
+      <Column Name="MODELO_COMPRA" DataType="System.String"/>
+      <Column Name="SENHA_SUPERVISOR_BONIFICACAO" DataType="System.String"/>
+      <Column Name="ALTERAR_LOTE_MOVIMENTO" DataType="System.String"/>
+      <Column Name="TEC_CNPJ_CPF" DataType="System.String"/>
+      <Column Name="TEC_NOME" DataType="System.String"/>
+      <Column Name="TEC_FONE" DataType="System.String"/>
+      <Column Name="TEC_EMAIL" DataType="System.String"/>
+      <Column Name="TEC_idCSRT" DataType="System.String"/>
+      <Column Name="TEC_hashCSRT" DataType="System.String"/>
+      <Column Name="ATUALIZAR_VENCIMENTO_EMISSAO" DataType="System.String"/>
+      <Column Name="VENDAS_EXTERNAS_PREPEDIDO" DataType="System.String"/>
+      <Column Name="FAT_PEDIDO_LIBERADO" DataType="System.String"/>
+      <Column Name="LOCAL_FOTO" DataType="System.String"/>
+      <Column Name="BLOQUEAR_PEDIDO_ENTREGA_LIBERADA" DataType="System.String"/>
+      <Column Name="BLOQUEIO_REMESSA_ENVIADA" DataType="System.String"/>
+      <Column Name="VENDAS_EXTERNAS_CLIENTE" DataType="System.String"/>
+      <Column Name="MODELO_FORM_CONSULTA_PRECO" DataType="System.String"/>
+      <Column Name="GERENCIANET_CLIENTE_ID" DataType="System.String"/>
+      <Column Name="GERENCIANET_SECRET" DataType="System.String"/>
+      <Column Name="GERENCIANET_HOMOLOGACAO" DataType="System.String"/>
+      <Column Name="DUPLICIDADE_REF_PROD" DataType="System.String"/>
+      <Column Name="GERAR_ESTOQUE_MINIMO_AUTOMATICO" DataType="System.String"/>
+      <Column Name="DUPLICIDADE_CNPJ_CPF" DataType="System.String"/>
+      <Column Name="AGRUPAR_ITENS_NFE" DataType="System.String"/>
+      <Column Name="MODELO_ENTREGA" DataType="System.String"/>
+      <Column Name="IMPRIMIR_VALE_TROCA" DataType="System.String"/>
+      <Column Name="PREVENDA_LANCAR_LOTE_PRODUTO" DataType="System.String"/>
+      <Column Name="MODELO_DANFE_MDF" DataType="System.String"/>
+      <Column Name="FORNECEDOR_CADASTRAR_CLIENTE" DataType="System.String"/>
+      <Column Name="ATUALIZAR_PRECO_COMPRA_CUSTO" DataType="System.String"/>
+      <Column Name="ASAAS_CLIENTE_ID" DataType="System.String"/>
+      <Column Name="ASAAS_HOMOLOGACAO" DataType="System.String"/>
+      <Column Name="ALTERAR_CLIENTE_CAIXA_PREVENDA" DataType="System.String"/>
+      <Column Name="HABILITAR_TEF_CONTAS_RECEBER" DataType="System.String"/>
+      <Column Name="TIPO_FRETE_PADRAO" DataType="System.String"/>
+      <Column Name="FATURAMENTO_ESPECIE" DataType="System.String"/>
+      <Column Name="FATURAMENTO_MARCA" DataType="System.String"/>
+      <Column Name="FATURAMENTO_PERGUNTAR_MOV_ESTOQUE" DataType="System.String"/>
+      <Column Name="PREVENDA_VIDROS_PERGUNTAR_SERVICO" DataType="System.String"/>
+      <Column Name="PREVENDA_VIDROS_REPLICAR_SERVICO" DataType="System.String"/>
+      <Column Name="LOCAL_DOCUMENTOS_PREVENDA" DataType="System.String"/>
+      <Column Name="ROMANEIO_GERAR_NOTA_AJUSTE" DataType="System.String"/>
+      <Column Name="LOCAL_IMAGENS_PREVENDA" DataType="System.String"/>
+      <Column Name="MOV_SAIDA_AUTORIZAR_BAIXA_ESTOQUE" DataType="System.String"/>
+      <Column Name="COMBO_PRODUCAO" DataType="System.String"/>
+      <Column Name="AUDITORIA_MOTIVO" DataType="System.String"/>
+      <Column Name="VENDAS_EXTERNAS_MULTI_USUARIO" DataType="System.String"/>
+      <Column Name="ESTOQUE_MINIMO_OPERADOR" DataType="System.String"/>
+      <Column Name="CANCELAR_MOV_ESTOQUE" DataType="System.String"/>
+      <Column Name="CAIXA_NAO_FISCAL" DataType="System.String"/>
+      <Column Name="VENDA_CANCELAMENTO_AUTOMATICO" DataType="System.String"/>
+      <Column Name="DIAS_VENDA_CANCELAMENTO_AUTOMATICO" DataType="System.Int32"/>
+      <Column Name="PRODUCAO_METRAGEM" DataType="System.String"/>
+      <Column Name="PRODUTOS_POR_DANFE_PRINCIPAL" DataType="System.Int32"/>
+      <Column Name="PRODUTOS_POR_DANFE_SEQUENTE" DataType="System.Int32"/>
+      <Column Name="MODELO_ROMANEIO" DataType="System.String"/>
+      <Column Name="MODELO_PEDIDO_N_FISCAL" DataType="System.String"/>
+      <Column Name="SOLICITAR_DESCONTO_VENDA" DataType="System.String"/>
+      <Column Name="NAO_UTILIZAR_LOTE_CONSIGNACAO" DataType="System.String"/>
+      <Column Name="BLOQUEAR_REIMPRESSAO_ROMANEIO" DataType="System.String"/>
+      <Column Name="PERGUNTAR_ESTOQUE_CONTABIL" DataType="System.String"/>
+      <Column Name="ESTOQUE_SOLICITACAO_CLIENTE" DataType="System.String"/>
+      <Column Name="LOCAL_PROTOTIPOS" DataType="System.String"/>
+      <Column Name="LOCAL_PROTOTIPO_PREVENDA" DataType="System.String"/>
+      <Column Name="LOCAL_PROTOTIPO_ORCAMENTO" DataType="System.String"/>
+      <Column Name="RASTREDOR_XML_DESLIGAR_AUTOMATICO" DataType="System.String"/>
+      <Column Name="NFE_DESCONSIDERAR_NFCE_PEDIDO" DataType="System.String"/>
+      <Column Name="VENDAS_EXTERNA_SEM_FINANCEIRO" DataType="System.String"/>
+      <Column Name="DESCONTO_PRODUTO" DataType="System.String"/>
+      <Column Name="TABELA_PRECO_FORMA_PAGAMENTO" DataType="System.String"/>
+      <Column Name="BANDEIRA_CARTAO_BAIXA_PAGAMENTO" DataType="System.String"/>
+      <Column Name="MOV_ATIVOS_PRECO_PRODUTO" DataType="System.String"/>
+      <Column Name="PREV_ENCERRAMENTO_FINANCEIRO_LOCACAO" DataType="System.String"/>
+      <Column Name="VENDA_EXIBIR_PRODUTOS_COMPOSICAO" DataType="System.String"/>
+      <Column Name="NF_ENTRADA_LOTE_GERAR_SERIAL" DataType="System.String"/>
+      <Column Name="MODELO_RELATORIO_CAIXA" DataType="System.String"/>
+      <Column Name="MODELO_DANFE_NFCE" DataType="System.String"/>
+      <Column Name="PREVENDA_SERVICO_PERG_COLABORADOR" DataType="System.String"/>
+      <Column Name="PREVENDA_SERVICO_PERG_VENDEDOR" DataType="System.String"/>
+      <Column Name="PREVENDA_SOLICITAR_USUARIO_EXCLUSAO_ITEM" DataType="System.String"/>
+      <Column Name="ALERTA_VENDAS" DataType="System.String"/>
+      <Column Name="ALERTA_CONTAS_RECEBER" DataType="System.String"/>
+      <Column Name="ALERTA_PCP_ORDEM_PRODUCAO" DataType="System.String"/>
+      <Column Name="ALERTA_PCP_ORDEM_PRODUCAO_FINALIZADA" DataType="System.String"/>
+      <Column Name="GERAR_OS_COM_PENDENCIA" DataType="System.String"/>
+      <Column Name="MODELO_FORM_OS" DataType="System.String"/>
+      <Column Name="PERG_NFCE_CONTINGENCIA" DataType="System.String"/>
+      <Column Name="PROMOCAO_CALCULAR_DESCONTO" DataType="System.String"/>
+      <Column Name="EXIBIR_PESQUISA_RAPIDA_CAIXA" DataType="System.String"/>
+      <Column Name="NAO_ATUALIZAR_PRECO_COMPRA_COMPOSICAO" DataType="System.String"/>
+      <Column Name="PREVENDA_EST" DataType="System.Int32"/>
+      <Column Name="PREVENDA_FIN" DataType="System.Int32"/>
+      <Column Name="CAIXA_EST" DataType="System.Int32"/>
+      <Column Name="ROMANEIO_LIBERACAO_IMPRESSAO" DataType="System.String"/>
+      <Column Name="CIELO_CLIENTE_ID" DataType="System.String"/>
+      <Column Name="CIELO_CLIENTE_SECRET" DataType="System.String"/>
+      <Column Name="NIVEL_CASHBACK_TOKEN" DataType="System.String"/>
+      <Column Name="NIVEL_CASHBACK_HOMOLOGACAO" DataType="System.String"/>
+      <Column Name="SOLICITAR_QUANTIDADE_PDV" DataType="System.String"/>
+      <Column Name="VERSAO_SISTEMA" DataType="System.String"/>
+      <Column Name="DECIMAIS" DataType="System.Int32"/>
+    </BusinessObjectDataSource>
+    <Parameter Name="Desenvolvedor" DataType="System.String"/>
+    <Parameter Name="Mensagem" DataType="System.String"/>
+    <Parameter Name="Logo" DataType="System.Byte[]"/>
+    <Parameter Name="DataHoraImpressao" DataType="System.DateTime"/>
+    <Parameter Name="Usuario" DataType="System.String"/>
+  </Dictionary>
+  <ReportPage Name="Page1" LeftMargin="6" TopMargin="7" RightMargin="7" BottomMargin="7" Watermark.Font="Arial, 60pt">
+    <DataBand Name="Destinatario" Width="186.16" Height="100.5" BeforePrintEvent="Destinatario_BeforePrint" FirstRowStartsNewPage="true" DataSource="PRODUTOS" Columns.Count="4" Indent="0">
+      <TextObject Name="Text240" Left="0.2" Top="-1" Width="186.9" Height="33.64" IsIntersectedWithOtherObject="true" Text="[PRODUTOS.PK] - [PRODUTOS.DESCRICAO]" Padding="2, 1, 2, 1" Font="Arial, 10pt"/>
+      <TextObject Name="Text241" Left="10.1" Top="22.35" Width="177" Height="44.09" IsIntersectedWithOtherObject="true" Text="[Format(&quot;{0:N2}&quot;, [PRODUTOS.PRECO_VENDA])]" Padding="0, 0, 0, 0" WordWrap="false" Font="Arial, 30pt, style=Bold"/>
+      <BarcodeObject Name="Barcode1" Left="1.1" Top="67.25" Width="216" Height="32.8" IsIntersectedWithOtherObject="true" CanShrink="true" Text="[PRODUTOS.CODIGO_BARRA]" Zoom="0.6" AllowExpressions="true" Barcode="Code128" Barcode.AutoEncode="true"/>
+      <TextObject Name="Text243" Top="26.25" Width="38.8" Height="24.19" IsIntersectedWithOtherObject="true" Text="R$" Padding="2, 1, 2, 1" WordWrap="false" Font="Arial, 9pt, style=Bold"/>
+      <TextObject Name="Text244" Left="103.5" Top="78.6" Width="83.05" Height="21.19" IsIntersectedWithOtherObject="true" Text="[PRODUTOS.REFERENCIA]" Padding="2, 1, 2, 1" VertAlign="Bottom" WordWrap="false" Font="Arial, 10pt"/>
+      <TextObject Name="Text245" Left="103.5" Top="63.15" Width="83.05" Height="21.19" IsIntersectedWithOtherObject="true" Text="Ref.:" Padding="2, 1, 2, 1" VertAlign="Bottom" WordWrap="false" Font="Arial, 10pt"/>
+    </DataBand>
+  </ReportPage>
+</Report>
